@@ -1,6 +1,6 @@
 {
-  "name": "Metaplex NFT Marketplace",
-  "short_name": "Metaplex NFT Marketplace",
+  "name": "SolCollection NFT Marketplace",
+  "short_name": "SolCollection NFT Marketplace",
   "display": "standalone",
   "start_url": "./",
   "theme_color": "#002140",
