@@ -66,7 +66,6 @@ export const useAuctionStatus = (
 
     amount = formatTokenAmount(
       auctionView.auctionDataExtended?.info.instantSalePrice?.toNumber(),
-      mintInfo
     );
 
     return {

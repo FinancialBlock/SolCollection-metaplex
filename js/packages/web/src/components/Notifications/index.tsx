@@ -14,7 +14,6 @@ import {
   useUserAccounts,
   VaultState,
   WalletSigner,
-  WRAPPED_SOL_MINT,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -104,7 +103,7 @@ function RunAction({
 }
 
 export async function getPersonalEscrowAta(
-  wallet: WalletSigner | undefined
+  wallet: WalletSigner | undefined,
 ): Promise<StringPublicKey | undefined> {
   const PROGRAM_IDS = programIds();
   if (!wallet?.publicKey) return;
@@ -331,8 +330,7 @@ export function useSettlementAuctions({
                 myPayingAccount?.pubkey,
                 accountByMint,
               );
-              // accept funds (open WSOL & close WSOL) only if Auction currency SOL
-              if (wallet.publicKey && auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()) {
+              if (wallet.publicKey) {
                 const ata = await getPersonalEscrowAta(wallet);
                 if (ata) await closePersonalEscrow(connection, wallet, ata);
               }
@@ -369,7 +367,6 @@ export function Notifications() {
 
   const walletPubkey = wallet.publicKey?.toBase58() || '';
 
- 
   useCollapseWrappedSol({ connection, wallet, notifications });
 
   useSettlementAuctions({ connection, wallet, notifications });

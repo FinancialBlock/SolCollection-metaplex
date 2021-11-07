@@ -335,7 +335,6 @@ export function MetaProvider({ children = null as any }) {
         pullAuctionPage,
         pullAllMetadata,
         pullBillingPage,
-        // @ts-ignore
         pullAllSiteData,
         isLoading,
       }}

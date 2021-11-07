@@ -1,14 +1,14 @@
 export const data = {
   headContent: {
-    title: 'We are Metaplex',
+    title: 'We are SolCollection',
     subtitle: 'About Us',
-    bannerImage: '/main-banner.png',
+    bannerImage: '/NFT.png',
   },
   leftContent: undefined,
   midContent: {
     sections: [
       {
-        title: 'Metaplex is a protocol built on top of Solana that allows:',
+        title: 'SolCollection is a protocol built on top of Solana that allows:',
         paragraphs: [
           '• Creating/Minting non-fungible tokens;',
           '• Starting a variety of auctions for primary/secondary sales;',

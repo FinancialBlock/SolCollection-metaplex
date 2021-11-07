@@ -30,7 +30,7 @@ import {
   useMeta, BidStateType,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { MintInfo, Token } from '@solana/spl-token';
+import { MintInfo } from '@solana/spl-token';
 import { getHandleAndRegistryKey } from '@solana/spl-name-service';
 import useWindowDimensions from '../../utils/layout';
 import { CheckOutlined } from '@ant-design/icons';
@@ -38,8 +38,6 @@ import { ArtType } from '../../types';
 import { MetaAvatar, MetaAvatarDetailed } from '../../components/MetaAvatar';
 import { AmountLabel } from '../../components/AmountLabel';
 import { ClickToCopy } from '../../components/ClickToCopy';
-import { useTokenList } from '../../contexts/tokenList';
-
 
 export const AuctionItem = ({
   item,
@@ -93,7 +91,6 @@ export const AuctionView = () => {
   useEffect(() => {
     pullAuctionPage(id);
   }, []);
-
   let edition = '';
   if (art.type === ArtType.NFT) {
     edition = 'Unique';
@@ -108,8 +105,6 @@ export const AuctionView = () => {
   const hasDescription = data === undefined || data.description === undefined;
   const description = data?.description;
   const attributes = data?.attributes;
-
-  const tokenInfo = useTokenList()?.mainnetTokens.filter(m=>m.address == auction?.auction.info.tokenMint)[0]
 
   const items = [
     ...(auction?.items
@@ -343,20 +338,6 @@ export const AuctionView = () => {
                     )}
                   </span>
                 </div>
-                <div className={'info-component'}>
-                  <h6 className={'info-title'}>CURRENCY</h6>
-                  <span>
-                    {nftCount === undefined ? (
-                      <Skeleton paragraph={{ rows: 0 }} />
-                    ) : (
-                      `${tokenInfo?.name||"Custom Token"} ($${tokenInfo?.symbol|| "CUSTOM"})`
-                    )}
-                    <ClickToCopy
-                      className="copy-pubkey"
-                      copyText={tokenInfo? tokenInfo?.address: auction?.auction.info.tokenMint || ""}
-                    />
-                  </span>
-                </div>
               </div>
             </Col>
             <Col span={12} md={8} className="view-on-container">
@@ -408,13 +389,11 @@ const BidLine = (props: {
   mint?: MintInfo;
   isCancelled?: boolean;
   isActive?: boolean;
-  mintKey: string;
 }) => {
-  const { bid, index, mint, isCancelled, isActive, mintKey } = props;
+  const { bid, index, mint, isCancelled, isActive } = props;
   const { publicKey } = useWallet();
   const bidder = bid.info.bidderPubkey;
   const isme = publicKey?.toBase58() === bidder;
-  const tokenInfo = useTokenList().mainnetTokens.filter(m=>m.address == mintKey)[0]
 
   // Get Twitter Handle from address
   const connection = useConnection();
@@ -477,7 +456,7 @@ const BidLine = (props: {
                     flexDirection: 'row',
                     alignItems: 'center',
                   }}
-                  displaySymbol={tokenInfo?.symbol || "CUSTOM"}
+                  displaySOL={true}
                   iconSize={24}
                   amount={formatTokenAmount(bid.info.lastBid, mint)}
                 />
@@ -521,8 +500,7 @@ const BidLine = (props: {
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}
-                displaySymbol={tokenInfo?.symbol || "CUSTOM"}
-                tokenInfo={tokenInfo}
+                displaySOL={true}
                 iconSize={24}
                 amount={formatTokenAmount(bid.info.lastBid, mint)}
               />
@@ -609,7 +587,6 @@ export const AuctionBids = ({
           mint={mint}
           isCancelled={isCancelled}
           isActive={!bid.info.cancelled}
-          mintKey={auctionView?.auction.info.tokenMint||""}
         />
       );
 

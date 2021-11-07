@@ -1,21 +1,19 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
 
-export const TokenCircle = (props: { iconSize?: number , iconFile?: string, style?:CSSProperties}) => {
-  const { iconSize = 24 ,iconFile=undefined, style={}} = props;
-  const filePath = iconFile? iconFile:"/unknown_token.png"
+export const SolCircle = (props: { iconSize?: number }) => {
+  const { iconSize = 24 } = props;
   return (
     <span
       style={{
         background: 'rgba(255, 255, 255, 0.05)',
         borderRadius: '50%',
+        padding: `${iconSize / 4}px ${iconSize / 5}px`,
         height: iconSize,
         width: iconSize,
         display: 'inline-flex',
-        overflow: 'hidden',
-        ...style
       }}
     >
-      <img src={filePath}/>
+      <img src="/sol-circle.svg" />
     </span>
   );
 };

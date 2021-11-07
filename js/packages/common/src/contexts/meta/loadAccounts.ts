@@ -47,8 +47,6 @@ import { getMultipleAccounts } from '../accounts/getMultipleAccounts';
 import { getProgramAccounts } from './web3';
 import { createPipelineExecutor } from '../../utils/createPipelineExecutor';
 import { programIds } from '../..';
-import { getPackSets } from '../../models/packs/accounts/PackSet';
-import { processPackSets } from './processPackSets';
 const MULTIPLE_ACCOUNT_BATCH_SIZE = 100;
 
 export const USE_SPEED_RUN = false;
@@ -535,13 +533,6 @@ export const pullPage = async (
       }
     }
 
-    const store = programIds().store;
-    if (store) {
-      await getPackSets({ connection, storeId: store }).then(
-        forEach(processPackSets),
-      );
-    }
-
     if (page == 0) {
       console.log('-------->Page 0, pulling creators and store');
       await getProgramAccounts(connection, METAPLEX_ID, {
@@ -551,7 +542,7 @@ export const pullPage = async (
           },
         ],
       }).then(forEach(processMetaplexAccounts));
-
+      const store = programIds().store;
       if (store) {
         const storeAcc = await connection.getAccountInfo(store);
         if (storeAcc) {
@@ -784,8 +775,6 @@ export const loadAccounts = async (connection: Connection) => {
   const updateState = makeSetter(state);
   const forEachAccount = processingAccounts(updateState);
 
-  const STORE_ID = programIds().store;
-
   const forEach =
     (fn: ProcessAccountsFunc) => async (accounts: AccountAndPubkey[]) => {
       for (const account of accounts) {
@@ -817,17 +806,12 @@ export const loadAccounts = async (connection: Connection) => {
     pullMetadataByCreators(connection, state, updateState);
   const loadEditions = () =>
     pullEditions(connection, updateState, state, state.metadata);
-  const loadPacks = () =>
-    getPackSets({ connection, storeId: STORE_ID }).then(
-      forEachAccount(processPackSets),
-    );
 
   const loading = [
     loadCreators().then(loadMetadata).then(loadEditions),
     loadVaults(),
     loadAuctions(),
     loadMetaplex(),
-    loadPacks(),
   ];
 
   await Promise.all(loading);

@@ -1,9 +1,4 @@
-import {
-  Keypair,
-  Connection,
-  TransactionInstruction,
-  PublicKey,
-} from '@solana/web3.js';
+import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
 import {
   ParsedAccount,
   programIds,
@@ -28,9 +23,6 @@ import {
   StringPublicKey,
   toPublicKey,
   WalletSigner,
-  createAssociatedTokenAccountInstruction,
-  pubkeyToString,
-  WRAPPED_SOL_MINT,
 } from '@oyster/common';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { AccountLayout, MintLayout, Token } from '@solana/spl-token';
@@ -56,7 +48,7 @@ import { approve } from '@oyster/common/dist/lib/models/account';
 import { createTokenAccount } from '@oyster/common/dist/lib/actions/account';
 import { setupCancelBid } from './cancelBid';
 import { deprecatedPopulateParticipationPrintingAccount } from '@oyster/common/dist/lib/models/metaplex/deprecatedPopulateParticipationPrintingAccount';
-import { findAta, setupPlaceBid } from './sendPlaceBid';
+import { setupPlaceBid } from './sendPlaceBid';
 import { claimUnusedPrizes } from './claimUnusedPrizes';
 import { createMintAndAccountWithOne } from './createMintAndAccountWithOne';
 import { BN } from 'bn.js';
@@ -227,7 +219,6 @@ export async function sendRedeemBid(
       wallet,
       signers,
       instructions,
-      connection,
     );
   }
 
@@ -775,19 +766,14 @@ export async function setupRedeemParticipationInstructions(
       console.log('Found token account', tokenAccount);
     }
 
-    let receivingSolAccountOrAta = '';
-    if (auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()) {
-      receivingSolAccountOrAta = ensureWrappedAccount(
-        mintingInstructions,
-        cleanupInstructions,
-        tokenAccount,
-        wallet.publicKey,
-        price + accountRentExempt,
-        mintingSigners,
-      );
-    } else {
-      receivingSolAccountOrAta = await findAta(auctionView, wallet, connection)
-    }
+    const payingSolAccount = ensureWrappedAccount(
+      mintingInstructions,
+      cleanupInstructions,
+      tokenAccount,
+      wallet.publicKey,
+      price + accountRentExempt,
+      mintingSigners,
+    );
 
     instructions.push(mintingInstructions);
     signers.push(mintingSigners);
@@ -799,7 +785,7 @@ export async function setupRedeemParticipationInstructions(
     const transferAuthority = approve(
       myInstructions,
       cleanupInstructions,
-      toPublicKey(receivingSolAccountOrAta),
+      toPublicKey(payingSolAccount),
       wallet.publicKey,
       price,
     );
@@ -820,7 +806,7 @@ export async function setupRedeemParticipationInstructions(
       item.metadata.info.mint,
       transferAuthority.publicKey.toBase58(),
       auctionView.auctionManager.acceptPayment,
-      pubkeyToString(receivingSolAccountOrAta),
+      payingSolAccount,
       mint,
       me.info.supply.add(new BN(1)),
       winnerIndex != null && winnerIndex != undefined
@@ -972,24 +958,19 @@ async function deprecatedSetupRedeemParticipationInstructions(
           ? fixedPrice.toNumber()
           : auctionView.myBidderMetadata.info.lastBid.toNumber() || 0;
 
-      let receivingSolAccountOrAta = '';
-      if (auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()) {
-        receivingSolAccountOrAta = ensureWrappedAccount(
-          winningPrizeInstructions,
-          cleanupInstructions,
-          tokenAccount,
-          wallet.publicKey,
-          price + accountRentExempt,
-          winningPrizeSigner,
-        );
-      } else {
-        receivingSolAccountOrAta = await findAta(auctionView, wallet, connection)
-      }
+      const payingSolAccount = ensureWrappedAccount(
+        winningPrizeInstructions,
+        cleanupInstructions,
+        tokenAccount,
+        wallet.publicKey,
+        price + accountRentExempt,
+        winningPrizeSigner,
+      );
 
       const transferAuthority = approve(
         winningPrizeInstructions,
         cleanupInstructions,
-        toPublicKey(receivingSolAccountOrAta),
+        toPublicKey(payingSolAccount),
         wallet.publicKey,
         price,
       );
@@ -1007,7 +988,7 @@ async function deprecatedSetupRedeemParticipationInstructions(
         participationState.printingAuthorizationTokenAccount,
         transferAuthority.publicKey.toBase58(),
         auctionView.auctionManager.acceptPayment,
-        receivingSolAccountOrAta,
+        payingSolAccount,
       );
       newTokenBalance = 1;
       instructions.push([...winningPrizeInstructions, ...cleanupInstructions]);
